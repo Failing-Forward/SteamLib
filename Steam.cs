@@ -13,6 +13,7 @@ namespace SteamLib
     {
         private readonly string InstalledPath;
         private readonly string AppsPath;
+        private readonly string ConfigPath;
 
         public Steam()
         {
@@ -26,6 +27,7 @@ namespace SteamLib
             {
                 InstalledPath = steamPath.ToString();
                 AppsPath = InstalledPath + "\\steamapps";
+                ConfigPath = InstalledPath + "\\config";
             }
         }
 
@@ -39,6 +41,11 @@ namespace SteamLib
             return AppsPath;
         }
 
+        public string GetConfigPath()
+        {
+            return ConfigPath;
+        }
+
         public string GetAppPathById(string appId)
         {
             try
@@ -50,7 +57,41 @@ namespace SteamLib
                 return $"{AppsPath}\\common\\{match.Groups[1].Value}";
             } catch (FileNotFoundException)
             {
-                throw new AppNotInstalledException();
+                throw new AppNotInstalledException($"App with ID {appId}");
+            }
+        }
+
+        public string GetSteamIdByUserName(string username)
+        {
+            try
+            {
+                string data = File.ReadAllText(ConfigPath + $"\\config.vdf");
+                Regex regex = new Regex($"{username}[\\W]+\"SteamID\".+\"(.*?)\"");
+                Match match = regex.Match(data);
+
+                return match.Groups[1].Value;
+            }
+            catch (FileNotFoundException)
+            {
+                throw new UserNotFoundException();
+            }
+        }
+
+        public string[] GetUsersName()
+        {
+            try
+            {
+                string data = File.ReadAllText(ConfigPath + $"\\loginusers.vdf");
+                Regex regex = new Regex("\"AccountName\".+\"(.*?)\"");
+                MatchCollection matches = regex.Matches(data);
+                List<string> names = new List<string>();
+                foreach (Match match in matches)
+                    names.Add(match.Groups[1].Value);
+                return names.ToArray();
+            }
+            catch (Exception)
+            {
+                throw new UserNotFoundException();
             }
         }
     }

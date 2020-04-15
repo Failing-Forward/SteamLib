@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace SteamLib
 {
-    public class AppNotInstalledException : Exception
+    public class UserNotFoundException : Exception
     {
-        public AppNotInstalledException(string msg) : base(msg + " not installed.")
+        public UserNotFoundException() : base("User not found.")
         {
         }
     }

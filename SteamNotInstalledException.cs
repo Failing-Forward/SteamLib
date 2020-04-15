@@ -11,13 +11,5 @@ namespace SteamLib
         public SteamNotInstalledException() : base("Steam not installed.")
         {
         }
-
-        public SteamNotInstalledException(string msg) : base(msg)
-        {
-        }
-
-        public SteamNotInstalledException(string msg, Exception inner) : base(msg, inner)
-        {
-        }
     }
 }
