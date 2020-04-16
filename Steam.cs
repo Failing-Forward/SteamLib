@@ -2,18 +2,16 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using SteamLib.Exceptions;
 
 namespace SteamLib
 {
     public class Steam
     {
-        private readonly string InstalledPath;
-        private readonly string AppsPath;
-        private readonly string ConfigPath;
+        public readonly string InstalledPath;
+        public readonly string AppsPath;
+        public readonly string ConfigPath;
 
         public Steam()
         {
@@ -31,33 +29,24 @@ namespace SteamLib
             }
         }
 
-        public string GetInstalledPath()
-        {
-            return InstalledPath;
-        }
-
-        public string GetAppsPath()
-        {
-            return AppsPath;
-        }
-
-        public string GetConfigPath()
-        {
-            return ConfigPath;
-        }
-
         public string GetAppPathById(string appId)
         {
             try
-            {
+            {   
                 string data = File.ReadAllText(AppsPath + $"\\appmanifest_{appId}.acf");
                 Regex regex = new Regex("\"installdir\".+\"(.*?)\"");
                 Match match = regex.Match(data);
 
-                return $"{AppsPath}\\common\\{match.Groups[1].Value}";
+                if (match.Success)
+                {
+                    return $"{AppsPath}\\common\\{match.Groups[1].Value}";
+                } else
+                {
+                    throw new ConfigNotFoundException();
+                }
             } catch (FileNotFoundException)
             {
-                throw new AppNotInstalledException($"App with ID {appId}");
+                throw new AppNotInstalledException();
             }
         }
 
@@ -66,14 +55,20 @@ namespace SteamLib
             try
             {
                 string data = File.ReadAllText(ConfigPath + $"\\config.vdf");
-                Regex regex = new Regex($"{username}[\\W]+\"SteamID\".+\"(.*?)\"");
+                Regex regex = new Regex($"{ username }[\\W]+\"SteamID\".+\"(.*?)\"");
                 Match match = regex.Match(data);
 
-                return match.Groups[1].Value;
+                if (match.Success)
+                {
+                    return match.Groups[1].Value;
+                } else
+                {
+                    throw new UserNotFoundException();
+                }             
             }
             catch (FileNotFoundException)
             {
-                throw new UserNotFoundException();
+                throw new ConfigNotFoundException();
             }
         }
 
@@ -91,7 +86,7 @@ namespace SteamLib
             }
             catch (Exception)
             {
-                throw new UserNotFoundException();
+                throw new ConfigNotFoundException();
             }
         }
     }
